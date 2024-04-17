@@ -1,0 +1,48 @@
+version: '3'
+services:
+  db:
+    container_name: databasecontainer
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    volumes:
+      - ./init.sql:/docker-entrpoint-initdb.d/0_init.sql
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    environment:
+      MYSQL_DATABASE: nodejs_crud
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: senha
+      MYSQL_ROOT_PASSWORD: senha
+    networks:
+      - internalNet
+      
+  app:
+    container_name: nodeappcontainer
+    build: .
+    images: nodeapp:v1
+    command: npm start
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - 8081:8081
+    expose:
+      - 8081
+    depends_on:
+      - db
+    environment: 
+      DB_HOST: db
+      DB_USER: admin
+      DB_PASSWORD: 'senha'
+      DB_NAME: nodejs_crud
+      DB_PORT: 3306
+      DB_CONNECTION_LIMIT: 10
+      SERVER_PORT: 5000
+    networks:
+      - internalNet
+
+networks:
+  internalNet: 
+    driver: bridge
